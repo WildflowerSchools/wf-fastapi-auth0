@@ -8,7 +8,7 @@ import requests
 from wf_fastapi_auth0 import get_subject_domain, admin_token
 
 
-PERMS_API_URI = os.environ.get("PERMS_API_URI", "http://localhost:8000")
+PERMS_API_URI = os.environ.get("PERMS_API_URI", "https://permissions.api.wildflower-tech.org")
 PERMS_API_AUD = os.environ.get("PERMS_API_AUD", 'wildflower-tech.org')
 
 
@@ -44,6 +44,7 @@ async def check_requests(reqs: List[AuthRequest]):
                 "Authorization": f"bearer {admin_token(PERMS_API_AUD)}"}).json()
         return resp["data"]
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail="permissions_not_verified") from e
 
 

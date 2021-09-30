@@ -23,7 +23,7 @@ TOKEN_DOMAIN = os.environ.get("TOKEN_DOMAIN", "wildflowerschools.org")
 
 @ttl_cache(ttl=60 * 60 * 4)
 def admin_token(audience=None):
-    get_token = GetToken(AUTH0_DOMAIN)
+    get_token = GetToken(AUTH0_DOMAIN, timeout=10)
     token = get_token.client_credentials(
         CLIENT_ID,
         CLIENT_SECRET,
@@ -33,7 +33,10 @@ def admin_token(audience=None):
 
 
 async def verify_token(authorization=Depends(HTTPBearer())):
-    token = authorization.credentials
+    if hasattr(authorization, "credentials"):
+        token = authorization.credentials
+    else:
+        token = authorization
     unverified_header = jwt.get_unverified_header(token)
     rsa_key = load_rsa_key(unverified_header["kid"])
     try:
