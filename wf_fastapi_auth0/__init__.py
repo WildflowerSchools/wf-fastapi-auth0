@@ -77,14 +77,25 @@ async def get_subject_domain(authorization: str = Depends(HTTPBearer())):
     if "primaryEmail" in profile:
         primary_email = profile["primaryEmail"]
         domain = primary_email.split("@")[1]
-    elif "identities" in profile:
+
+    if primary_email is None and "identities" in profile:
         for identity in profile["identities"]:
             if identity['provider'] == "google-apps":
                 primary_email = identity['profileData']['primaryEmail']
                 domain = primary_email.split("@")[1]
-    elif "client_id" in profile:
+
+    if primary_email is None and "client_id" in profile:
         primary_email = f"{profile['name']}@{TOKEN_EMAIL_DOMAIN}"
         domain = TOKEN_DOMAIN
+
+    if primary_email is None and "email" in profile and "email_verified" in profile:
+        if profile["email_verified"]:
+            primary_email = profile["email"]
+            domain = primary_email.split("@")[1]
+
+    if primary_email is None:
+        raise HTTPException(status_code=401, detail="unable_to_verify_user_profile")
+
     return (primary_email, domain)
 
 

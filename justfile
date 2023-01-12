@@ -1,4 +1,4 @@
-version := "1.0.2"
+version := "1.0.3"
 
 fmt-python:
     @autopep8 --aggressive --recursive --in-place ./wf_fastapi_auth0/
