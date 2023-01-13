@@ -25,10 +25,9 @@ TOKEN_DOMAIN = os.environ.get("TOKEN_DOMAIN", "wildflowerschools.org")
 def admin_token(audience=None):
     get_token = GetToken(AUTH0_DOMAIN, timeout=10)
     token = get_token.client_credentials(
-        CLIENT_ID,
-        CLIENT_SECRET,
-        audience if audience is not None else f'https://{AUTH0_DOMAIN}/api/v2/')
-    api_token = token['access_token']
+        CLIENT_ID, CLIENT_SECRET, audience if audience is not None else f"https://{AUTH0_DOMAIN}/api/v2/"
+    )
+    api_token = token["access_token"]
     return api_token
 
 
@@ -41,11 +40,7 @@ async def verify_token(authorization=Depends(HTTPBearer())):
     rsa_key = load_rsa_key(unverified_header["kid"])
     try:
         payload = jwt.decode(
-            token,
-            rsa_key,
-            algorithms=ALGORITHMS,
-            audience=API_AUDIENCE,
-            issuer=f"https://{AUTH0_DOMAIN}/"
+            token, rsa_key, algorithms=ALGORITHMS, audience=API_AUDIENCE, issuer=f"https://{AUTH0_DOMAIN}/"
         )
         return payload
     except jwt.ExpiredSignatureError as e:
@@ -63,7 +58,7 @@ async def get_profile(authorization: str = Depends(HTTPBearer())):
         u = Users(AUTH0_DOMAIN, admin_token())
         return u.get(user_id)  # , ["email", "app_metadata"])
     gty = authentication["gty"]
-    if gty == 'client-credentials':
+    if gty == "client-credentials":
         clients = Clients(AUTH0_DOMAIN, admin_token())
         client_id = authentication["sub"].split("@")[0]
         return clients.get(client_id)
@@ -80,8 +75,8 @@ async def get_subject_domain(authorization: str = Depends(HTTPBearer())):
 
     if primary_email is None and "identities" in profile:
         for identity in profile["identities"]:
-            if identity['provider'] == "google-apps":
-                primary_email = identity['profileData']['primaryEmail']
+            if identity["provider"] == "google-apps":
+                primary_email = identity["profileData"]["primaryEmail"]
                 domain = primary_email.split("@")[1]
 
     if primary_email is None and "client_id" in profile:
@@ -101,7 +96,7 @@ async def get_subject_domain(authorization: str = Depends(HTTPBearer())):
 
 @ttl_cache(ttl=60 * 60)
 def load_certs():
-    return requests.get(f"https://{AUTH0_DOMAIN}/.well-known/jwks.json").json()
+    return requests.get(f"https://{AUTH0_DOMAIN}/.well-known/jwks.json", timeout=10).json()
 
 
 @ttl_cache(ttl=60 * 60)
@@ -110,11 +105,5 @@ def load_rsa_key(kid):
     jwks = load_certs()
     for key in jwks["keys"]:
         if key["kid"] == kid:
-            rsa_key = {
-                "kty": key["kty"],
-                "kid": key["kid"],
-                "use": key["use"],
-                "n": key["n"],
-                "e": key["e"]
-            }
+            rsa_key = {"kty": key["kty"], "kid": key["kid"], "use": key["use"], "n": key["n"], "e": key["e"]}
     return rsa_key

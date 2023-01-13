@@ -9,7 +9,7 @@ from wf_fastapi_auth0 import get_subject_domain, admin_token
 
 
 PERMS_API_URI = os.environ.get("PERMS_API_URI", "https://permissions.api.wildflower-tech.org")
-PERMS_API_AUD = os.environ.get("PERMS_API_AUD", 'wildflower-tech.org')
+PERMS_API_AUD = os.environ.get("PERMS_API_AUD", "wildflower-tech.org")
 
 
 class Predicate(BaseModel):
@@ -31,6 +31,7 @@ def access_patterns(predicates: List[Predicate]):
         for predicate in predicates:
             reqs.append(AuthRequest(sub=sub, dom=domain, obj=predicate.obj, act=predicate.act))
         return await check_requests(reqs)
+
     return wrapped
 
 
@@ -40,8 +41,9 @@ async def check_requests(reqs: List[AuthRequest]):
         resp = requests.post(
             f"{PERMS_API_URI}/authz",
             json=payload,
-            headers={
-                "Authorization": f"bearer {admin_token(PERMS_API_AUD)}"}).json()
+            headers={"Authorization": f"bearer {admin_token(PERMS_API_AUD)}"},
+            timeout=10,
+        ).json()
         return resp["data"]
     except Exception as e:
         print(e)
@@ -51,4 +53,5 @@ async def check_requests(reqs: List[AuthRequest]):
 def include_path_params(pattern: str):
     async def wrapped(request: Request):
         return pattern.format(**request.path_params)
+
     return wrapped
