@@ -4,7 +4,7 @@ dynamic = ["version"]
 
 [tool.poetry]
 name = "wf-fastapi-auth0"
-version = "1.0.4"
+version = "1.0.5"
 authors = ["Paul DeCoursey <paul.decoursey@wildflowerschools.org>"]
 maintainers = ["Benjamin Jaffe-Talberg <ben.talberg@wildflowerschools.org>"]
 description = "Library to simplify adding Auth0 support to FastAPI"
